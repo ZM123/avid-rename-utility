@@ -2,36 +2,41 @@ import re
 import sys
 import csv
 
+# Parses the tab delimited ALE file into a list of lists
+def read_ale(filename):
+    return list(csv.reader(open(name, 'r'), delimiter='\t'))
+
+# Retrieves the list containing the column names from an ALE as a list of lists
+def get_columns(row_list):
+    for index, row in enumerate(row_list):
+        if len(row) == 1 and row[0] == 'Column' and index < len(row_list) - 1:
+            return row_list[index + 1]
+
+# Retrieves the data as a list of lists from an ALE as a list of lists
+def get_data(row_list):
+    for index, row in enumerate(row_list):
+        if len(row) == 1 and row[0] == 'Data':
+            if index == len(row_list) - 1:
+                print('No data found')
+                return []
+
+            return row_list[index + 1:]
+
+################################################################################
 name = sys.argv[1]
 
-list_of_rows = list(csv.reader(open(name, 'r'), delimiter='\t'))
+row_list = read_ale(name)
 
-# print(list_of_rows)
+columns = get_columns(row_list)
 
-column_headings = []
+data = get_data(row_list)
 
-for index, row in enumerate(list_of_rows):
-   if len(row) == 1 and row[0] == 'Column':
-       column_headings = list_of_rows[index + 1]
-
-name_index = -1
-
-for index, heading in enumerate(column_headings):
-    if heading == 'Name':
-        name_index = index
-
-if name_index == -1:
-    print('No Name column found')
-    sys.exit(1)
-
-data_rows = []
-
-for index, row in enumerate(list_of_rows):
-    if len(row) == 1 and row[0] == 'Data':
-        if index == len(list_of_rows) - 1:
-            print('No data found')
-            sys.exit(1)
-
-        data_rows = list_of_rows[index + 1:]
-
-# print(data_rows)
+# name_index = -1
+#
+# for index, heading in enumerate(column_headings):
+#     if heading == 'Name':
+#         name_index = index
+#
+# if name_index == -1:
+#     print('No Name column found')
+#     sys.exit(1)
