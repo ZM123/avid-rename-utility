@@ -58,30 +58,45 @@ print('Found shot names:')
 for name in shot_names:
     print(name)
 
-search_regex = input('Enter search regex:')
+should_commit = False
+search_regex = ''
+sub_regex = ''
+# Search input loop
+while should_commit is False:
+    search_regex = input('Enter search regex:')
 
-# Add surrounding capture group if none specified
-if re.compile(search_regex).groups < 1:
-    search_regex = f'({search_regex})'
+    # Add surrounding capture group if none specified
+    if re.compile(search_regex).groups < 1:
+        search_regex = f'({search_regex})'
 
-print('Found matches:')
-for name in shot_names:
-    print(re.sub(rf'({search_regex})', r'\033[2;31;43m\1\033[0;0m', name))
+    print('Found matches:')
+    for name in shot_names:
+        print(re.sub(rf'({search_regex})', r'\033[2;31;43m\1\033[0;0m', name))
 
-sub_regex = input('Enter substitution regex, UP for uppercase, LO for lowercase:')
+    # Sub input loop
+    while should_commit is False:
+        sub_regex = input('Enter substitution regex, UP for uppercase, LO for lowercase, RE to restart:')
 
-to_lower = False
-to_upper = False
-if sub_regex == 'UP':
-    to_upper = True
-if sub_regex == 'LO':
-    to_lower = True
+        if sub_regex == 'RE':
+            break
 
-print('Substitution preview:')
-for name in shot_names:
-    if to_upper:
-        print(re.sub(rf'{search_regex}', lambda m: '\033[2;36;42m{}\033[0;0m'.format(m.group().upper()), name))
-    elif to_lower:
-        print(re.sub(rf'{search_regex}', lambda m: '\033[2;36;42m{}\033[0;0m'.format(m.group().lower()), name))
-    else:
-        print(re.sub(rf'{search_regex}', rf'\033[2;36;42m{sub_regex}\033[0;0m', name))
+        print('Substitution preview:')
+        for name in shot_names:
+            if sub_regex == 'UP':
+                print(re.sub(rf'{search_regex}', lambda m: '\033[2;36;42m{}\033[0;0m'.format(m.group().upper()), name))
+            elif sub_regex == 'LO':
+                print(re.sub(rf'{search_regex}', lambda m: '\033[2;36;42m{}\033[0;0m'.format(m.group().lower()), name))
+            else:
+                print(re.sub(rf'{search_regex}', rf'\033[2;36;42m{sub_regex}\033[0;0m', name))
+
+        commit_input = input('Do you want to commit this? Y/N:')
+        if commit_input == 'Y':
+            should_commit = True
+        else:
+            restart_point = input('Type SE to change search value, SU to change sub value:')
+            if restart_point == 'SU':
+                continue
+            else:
+                break
+
+# write the file here
