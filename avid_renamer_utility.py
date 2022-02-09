@@ -84,4 +84,4 @@ for name in shot_names:
     elif to_lower:
         print(re.sub(rf'{search_regex}', lambda m: '\033[2;36;42m{}\033[0;0m'.format(m.group().lower()), name))
     else:
-        print(re.sub(rf'{search_regex}', rf'{sub_regex}', name))
+        print(re.sub(rf'{search_regex}', rf'\033[2;36;42m{sub_regex}\033[0;0m', name))
