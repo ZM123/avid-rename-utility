@@ -65,6 +65,12 @@ def update_shot_names(row_list, search_value, sub_value):
     for row in row_list[data_index:]:
         row[name_index] = modify_word(row[name_index], search_value, sub_value)
 
+# Write the data into an ALE file with the specified filename
+def write_ale(data, filename):
+    with open(filename, 'w', newline='') as f:
+        writer = csv.writer(f, delimiter='\t')
+        writer.writerows(data)
+
 ################################################################################
 filename = sys.argv[1]
 
@@ -129,3 +135,6 @@ while should_commit is False:
                 break
 
 update_shot_names(row_list, search_regex, sub_regex)
+
+print('Writing to file...')
+write_ale(row_list, 'out.ALE')
