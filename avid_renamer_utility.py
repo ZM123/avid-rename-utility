@@ -29,12 +29,16 @@ def get_data_dicts(row_list):
     return dicts
 
 # Modify a word given a search regex and sub regex
-def modify_word(word, search_value, sub_value):
+def modify_word(word, search_value, sub_value, highlight_colour = None):
     if sub_value == 'UP':
-        return re.sub(rf'{search_value}', lambda m: m.group().upper(), word)
+        sub = lambda m: f'\033[{highlight_colour}m{m.group().upper()}\033[0;0m' if highlight_colour else lambda m: m.group().upper()
+        return re.sub(rf'{search_value}', sub, word)
     if sub_value == 'LO':
-        return re.sub(rf'{search_value}', lambda m: m.group().lower(), word)
-    return re.sub(rf'{search_value}', rf'{sub_regex}', word)
+        sub = lambda m: f'\033[{highlight_colour}m{m.group().lower()}\033[0;0m' if highlight_colour else lambda m: m.group().lower()
+        return re.sub(rf'{search_value}', sub, word)
+
+    sub = rf'\033[{highlight_colour}m{sub_value}\033[0;0m' if highlight_colour else rf'{sub_value}'
+    return re.sub(rf'{search_value}', sub, word)
 
 # Update the parsed ALE with the new data
 def update_ale(row_list, data_dicts):
@@ -84,7 +88,7 @@ while should_commit is False:
 
     print('Found matches:')
     for name in shot_names:
-        print(re.sub(rf'({search_regex})', r'\033[2;31;43m\1\033[0;0m', name))
+        print(modify_word(name, rf'({search_regex})', r'\1', '2;31;43'))
 
     # Sub input loop
     while should_commit is False:
@@ -95,12 +99,7 @@ while should_commit is False:
 
         print('Substitution preview:')
         for name in shot_names:
-            if sub_regex == 'UP':
-                print(re.sub(rf'{search_regex}', lambda m: f'\033[2;36;42m{m.group().upper()}\033[0;0m', name))
-            elif sub_regex == 'LO':
-                print(re.sub(rf'{search_regex}', lambda m: f'\033[2;36;42m{m.group().lower()}\033[0;0m', name))
-            else:
-                print(re.sub(rf'{search_regex}', rf'\033[2;36;42m{sub_regex}\033[0;0m', name))
+            print(modify_word(name, search_regex, sub_regex, '2;36;42'))
 
         commit_input = input('Do you want to commit this? Y/N:')
         if commit_input == 'Y' or commit_input == 'y':
@@ -112,6 +111,7 @@ while should_commit is False:
             else:
                 break
 
+# Update the name for each data item
 for item in data_dicts:
     item['Name'] = modify_word(item['Name'], search_regex, sub_regex)
 
