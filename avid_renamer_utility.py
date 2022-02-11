@@ -55,70 +55,77 @@ def write_ale(data, filename):
         writer = csv.writer(f, delimiter='\t')
         writer.writerows(data)
 
+# Main logic loop
+def run_avid_renamer_utility(input_filename, output_filename):
+    row_list = read_ale(input_filename)
+
+    data_dicts = get_data_dicts(row_list)
+
+    if len(data_dicts) == 0:
+        return 1
+
+    shot_names = [data['Name'] for data in data_dicts]
+
+    if len(shot_names) == 0:
+        print('No shot names found')
+        return 1
+
+    print('Found shot names:')
+    for name in shot_names:
+        print(name)
+
+    should_commit = False
+    search_regex = ''
+    sub_regex = ''
+    # Search input loop
+    while should_commit is False:
+        search_regex = input('Enter search regex:')
+
+        # Add surrounding capture group if none specified
+        if re.compile(search_regex).groups < 1:
+            search_regex = f'({search_regex})'
+
+        print('Found matches:')
+        for name in shot_names:
+            print(modify_word(name, rf'({search_regex})', r'\1', '2;31;43'))
+
+        # Sub input loop
+        while should_commit is False:
+            sub_regex = input('Enter substitution regex, UP for uppercase, LO for lowercase, RE to restart:')
+
+            if sub_regex == 'RE':
+                break
+
+            print('Substitution preview:')
+            for name in shot_names:
+                print(modify_word(name, search_regex, sub_regex, '2;36;42'))
+
+            commit_input = input('Do you want to commit this? Y/N:')
+            if commit_input == 'Y' or commit_input == 'y':
+                should_commit = True
+            else:
+                restart_point = input('Type SE to change search value, SU to change sub value:')
+                if restart_point == 'SU':
+                    continue
+                else:
+                    break
+
+    # Update the name for each data item
+    for item in data_dicts:
+        item['Name'] = modify_word(item['Name'], search_regex, sub_regex)
+
+    update_ale(row_list, data_dicts)
+
+    print('Writing to file...')
+    write_ale(row_list, output_filename)
+    return 0
+
 ################################################################################
 input_filename = sys.argv[1]
 
-row_list = read_ale(input_filename)
-
-data_dicts = get_data_dicts(row_list)
-
-if len(data_dicts) == 0:
-    sys.exit(1)
-
-shot_names = [data['Name'] for data in data_dicts]
-
-if len(shot_names) == 0:
-    print('No shot names found')
-    sys.exit(1)
-
-print('Found shot names:')
-for name in shot_names:
-    print(name)
-
-should_commit = False
-search_regex = ''
-sub_regex = ''
-# Search input loop
-while should_commit is False:
-    search_regex = input('Enter search regex:')
-
-    # Add surrounding capture group if none specified
-    if re.compile(search_regex).groups < 1:
-        search_regex = f'({search_regex})'
-
-    print('Found matches:')
-    for name in shot_names:
-        print(modify_word(name, rf'({search_regex})', r'\1', '2;31;43'))
-
-    # Sub input loop
-    while should_commit is False:
-        sub_regex = input('Enter substitution regex, UP for uppercase, LO for lowercase, RE to restart:')
-
-        if sub_regex == 'RE':
-            break
-
-        print('Substitution preview:')
-        for name in shot_names:
-            print(modify_word(name, search_regex, sub_regex, '2;36;42'))
-
-        commit_input = input('Do you want to commit this? Y/N:')
-        if commit_input == 'Y' or commit_input == 'y':
-            should_commit = True
-        else:
-            restart_point = input('Type SE to change search value, SU to change sub value:')
-            if restart_point == 'SU':
-                continue
-            else:
-                break
-
-# Update the name for each data item
-for item in data_dicts:
-    item['Name'] = modify_word(item['Name'], search_regex, sub_regex)
-
-update_ale(row_list, data_dicts)
-
-print('Writing to file...')
 output_filename = input_filename
 if len(sys.argv) > 2:
     output_filename = sys.argv[2]
-write_ale(row_list, output_filename)
+
+ret = run_avid_renamer_utility(input_filename, output_filename)
+sys.exit(ret)
