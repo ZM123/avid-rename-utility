@@ -118,9 +118,9 @@ while should_commit is False:
         print('Substitution preview:')
         for name in shot_names:
             if sub_regex == 'UP':
-                print(re.sub(rf'{search_regex}', lambda m: '\033[2;36;42m{}\033[0;0m'.format(m.group().upper()), name))
+                print(re.sub(rf'{search_regex}', lambda m: f'\033[2;36;42m{m.group().upper()}\033[0;0m', name))
             elif sub_regex == 'LO':
-                print(re.sub(rf'{search_regex}', lambda m: '\033[2;36;42m{}\033[0;0m'.format(m.group().lower()), name))
+                print(re.sub(rf'{search_regex}', lambda m: f'\033[2;36;42m{m.group().lower()}\033[0;0m', name))
             else:
                 print(re.sub(rf'{search_regex}', rf'\033[2;36;42m{sub_regex}\033[0;0m', name))
 
