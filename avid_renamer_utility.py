@@ -31,10 +31,10 @@ def get_data_dicts(row_list):
 # Modify a word given a search regex and sub regex
 def modify_word(word, search_value, sub_value, highlight_colour = None):
     if sub_value == 'UP':
-        sub = lambda m: f'\033[{highlight_colour}m{m.group().upper()}\033[0;0m' if highlight_colour else lambda m: m.group().upper()
+        sub = (lambda m: f'\033[{highlight_colour}m{m.group().upper()}\033[0;0m') if highlight_colour else (lambda m: m.group().upper())
         return re.sub(rf'{search_value}', sub, word)
     if sub_value == 'LO':
-        sub = lambda m: f'\033[{highlight_colour}m{m.group().lower()}\033[0;0m' if highlight_colour else lambda m: m.group().lower()
+        sub = (lambda m: f'\033[{highlight_colour}m{m.group().lower()}\033[0;0m') if highlight_colour else (lambda m: m.group().lower())
         return re.sub(rf'{search_value}', sub, word)
 
     sub = rf'\033[{highlight_colour}m{sub_value}\033[0;0m' if highlight_colour else rf'{sub_value}'
