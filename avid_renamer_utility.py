@@ -36,6 +36,35 @@ def get_shot_names(columns_list, data_list):
 
     return [x[name_index] for x in data_list]
 
+# Modify a word given a search regex and sub regex
+def modify_word(word, search_value, sub_value):
+    if sub_value == 'UP':
+        return re.sub(rf'{search_value}', lambda m: m.group().upper(), word)
+    if sub_value == 'LO':
+        return re.sub(rf'{search_value}', lambda m: m.group().lower(), word)
+    return re.sub(rf'{search_value}', rf'{sub_regex}', word)
+
+# Update the shot names in the data list given the search regex and sub regex
+def update_shot_names(row_list, search_value, sub_value):
+    name_index = -1
+    data_index = -1
+    for index, row in enumerate(row_list):
+        if len(row) == 1 and row[0] == 'Column':
+            columns = row_list[index + 1]
+            try:
+                name_index = columns.index('Name')
+            except ValueError:
+                print('Name column not found')
+                return False
+        if len(row) == 1 and row[0] == 'Data':
+            data_index = index + 1
+
+    if name_index == -1 or data_index == -1:
+        return
+
+    for row in row_list[data_index:]:
+        row[name_index] = modify_word(row[name_index], search_value, sub_value)
+
 ################################################################################
 filename = sys.argv[1]
 
@@ -90,7 +119,7 @@ while should_commit is False:
                 print(re.sub(rf'{search_regex}', rf'\033[2;36;42m{sub_regex}\033[0;0m', name))
 
         commit_input = input('Do you want to commit this? Y/N:')
-        if commit_input == 'Y':
+        if commit_input == 'Y' or commit_input == 'y':
             should_commit = True
         else:
             restart_point = input('Type SE to change search value, SU to change sub value:')
@@ -99,4 +128,4 @@ while should_commit is False:
             else:
                 break
 
-# write the file here
+update_shot_names(row_list, search_regex, sub_regex)
