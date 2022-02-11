@@ -6,35 +6,27 @@ import csv
 def read_ale(filename):
     return list(csv.reader(open(filename, 'r'), delimiter='\t'))
 
-# Retrieves the list containing the column names from an ALE as a list of lists
-def get_columns(row_list):
-    for index, row in enumerate(row_list):
-        if len(row) == 1 and row[0] == 'Column':
-            return row_list[index + 1]
+# Retrieves the data from a parsed ALE as a list of dictionaries
+def get_data_dicts(row_list):
+    dicts = []
 
-# Retrieves the data as a list of lists from an ALE as a list of lists
-def get_data(row_list):
-    for index, row in enumerate(row_list):
-        if len(row) == 1 and row[0] == 'Data':
-            if index == len(row_list) - 1:
-                print('No data found')
-                return []
+    columns_index = row_list.index(['Column'])
+    columns = row_list[columns_index + 1]
 
-            return row_list[index + 1:]
+    # Exit if Name column not included
+    if len(columns) == 0 or 'Name' not in columns:
+        return dicts
 
-# Get the list of shot names given the data columns and data list
-def get_shot_names(columns_list, data_list):
-    name_index = -1
+    data_index = row_list.index(['Data'])
+    data_rows = row_list[data_index + 1:]
 
-    for index, heading in enumerate(columns_list):
-        if heading == 'Name':
-            name_index = index
+    for item in data_rows:
+        if len(item) != len(columns):
+            continue
+        new_dict = dict(zip(columns, item))
+        dicts.append(new_dict)
 
-    if name_index == -1:
-        print('No Name column found')
-        return []
-
-    return [x[name_index] for x in data_list]
+    return dicts
 
 # Modify a word given a search regex and sub regex
 def modify_word(word, search_value, sub_value):
@@ -44,26 +36,14 @@ def modify_word(word, search_value, sub_value):
         return re.sub(rf'{search_value}', lambda m: m.group().lower(), word)
     return re.sub(rf'{search_value}', rf'{sub_regex}', word)
 
-# Update the shot names in the data list given the search regex and sub regex
-def update_shot_names(row_list, search_value, sub_value):
-    name_index = -1
-    data_index = -1
-    for index, row in enumerate(row_list):
-        if len(row) == 1 and row[0] == 'Column':
-            columns = row_list[index + 1]
-            try:
-                name_index = columns.index('Name')
-            except ValueError:
-                print('Name column not found')
-                return False
-        if len(row) == 1 and row[0] == 'Data':
-            data_index = index + 1
+# Update the parsed ALE with the new data
+def update_ale(row_list, data_dicts):
+    columns_index = row_list.index(['Column'])
+    columns = row_list[columns_index + 1]
 
-    if name_index == -1 or data_index == -1:
-        return
-
-    for row in row_list[data_index:]:
-        row[name_index] = modify_word(row[name_index], search_value, sub_value)
+    data_index = row_list.index(['Data'])
+    for index, item in enumerate(row_list[data_index + 1:]):
+        row_list[data_index + 1 + index] = [data_dicts[index][column] for column in columns]
 
 # Write the data into an ALE file with the specified filename
 def write_ale(data, filename):
@@ -76,14 +56,12 @@ input_filename = sys.argv[1]
 
 row_list = read_ale(input_filename)
 
-columns = get_columns(row_list)
+data_dicts = get_data_dicts(row_list)
 
-data = get_data(row_list)
-
-if len(columns) == 0 or len(data) == 0:
+if len(data_dicts) == 0:
     sys.exit(1)
 
-shot_names = get_shot_names(columns, data)
+shot_names = [data['Name'] for data in data_dicts]
 
 if len(shot_names) == 0:
     print('No shot names found')
@@ -134,7 +112,10 @@ while should_commit is False:
             else:
                 break
 
-update_shot_names(row_list, search_regex, sub_regex)
+for item in data_dicts:
+    item['Name'] = modify_word(item['Name'], search_regex, sub_regex)
+
+update_ale(row_list, data_dicts)
 
 print('Writing to file...')
 output_filename = input_filename
