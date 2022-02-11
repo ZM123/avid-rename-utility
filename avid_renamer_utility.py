@@ -72,9 +72,9 @@ def write_ale(data, filename):
         writer.writerows(data)
 
 ################################################################################
-filename = sys.argv[1]
+input_filename = sys.argv[1]
 
-row_list = read_ale(filename)
+row_list = read_ale(input_filename)
 
 columns = get_columns(row_list)
 
@@ -137,4 +137,7 @@ while should_commit is False:
 update_shot_names(row_list, search_regex, sub_regex)
 
 print('Writing to file...')
-write_ale(row_list, 'out.ALE')
+output_filename = input_filename
+if len(sys.argv) > 2:
+    output_filename = sys.argv[2]
+write_ale(row_list, output_filename)
